@@ -573,7 +573,7 @@
       <label>Client Secret</label>
       <input type="password" id="input-client-secret" placeholder="Tu client secret" />
     </div>
-    <button class="btn btn-primary" onclick="startOAuth()">
+    <button class="btn btn-primary" id="btn-connect">
       Conectar con MercadoLibre →
     </button>
   </div>
@@ -592,7 +592,7 @@
     <div class="topbar">
       <div class="topbar-title">Preguntas</div>
       <span class="topbar-badge" id="badge-count">0</span>
-      <button class="topbar-icon-btn" onclick="loadQuestions()" title="Actualizar">↻</button>
+      <button class="topbar-icon-btn" id="btn-refresh-questions" title="Actualizar">↻</button>
     </div>
     <div class="content" id="questions-list">
       <div class="loading-state">
@@ -606,12 +606,12 @@
   <div id="tab-catalog" class="tab-content" style="display:none; flex-direction:column; height:100vh;">
     <div class="topbar">
       <div class="topbar-title">Catálogo</div>
-      <button class="topbar-icon-btn" onclick="loadCatalog()" title="Actualizar">↻</button>
+      <button class="topbar-icon-btn" id="btn-refresh-catalog" title="Actualizar">↻</button>
     </div>
     <div class="content">
       <div class="search-bar">
         <span class="search-icon">🔍</span>
-        <input type="text" id="catalog-search" placeholder="Buscar publicación..." oninput="filterCatalog()" />
+        <input type="text" id="catalog-search" placeholder="Buscar publicación..."  />
       </div>
       <div id="catalog-list">
         <div class="loading-state">
@@ -631,7 +631,7 @@
       <div class="add-reply-form" id="reply-form-container">
         <h4>➕ Nueva respuesta</h4>
         <textarea id="new-reply-text" placeholder="Escribí la respuesta predefinida..." rows="3"></textarea>
-        <button class="btn btn-primary" onclick="addPredefinedReply()" style="width:100%;">Guardar respuesta</button>
+        <button class="btn btn-primary" id="btn-add-reply" style="width:100%;">Guardar respuesta</button>
       </div>
       <p class="section-label">Tus respuestas guardadas</p>
       <div id="replies-list"></div>
@@ -652,7 +652,7 @@
         </div>
         <div class="config-row">
           <span class="config-row-label">Sesión</span>
-          <button class="config-row-action" onclick="logout()">Cerrar sesión</button>
+          <button class="config-row-action" id="btn-logout">Cerrar sesión</button>
         </div>
       </div>
       <div class="config-section">
@@ -667,19 +667,19 @@
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
-    <button class="nav-item active" id="nav-questions" onclick="switchTab('questions')">
+    <button class="nav-item active" id="nav-questions">
       <span class="nav-icon">💬</span>
       <span>Preguntas</span>
     </button>
-    <button class="nav-item" id="nav-catalog" onclick="switchTab('catalog')">
+    <button class="nav-item" id="nav-catalog">
       <span class="nav-icon">🛋️</span>
       <span>Catálogo</span>
     </button>
-    <button class="nav-item" id="nav-replies" onclick="switchTab('replies')">
+    <button class="nav-item" id="nav-replies">
       <span class="nav-icon">⚡</span>
       <span>Rápidas</span>
     </button>
-    <button class="nav-item" id="nav-config" onclick="switchTab('config')">
+    <button class="nav-item" id="nav-config">
       <span class="nav-icon">⚙️</span>
       <span>Config</span>
     </button>
@@ -689,7 +689,7 @@
 <!-- ═══════════════════════════════ ANSWER SCREEN ═══════════════════════════════ -->
 <div id="screen-answer" class="screen">
   <div class="topbar">
-    <button class="topbar-back" onclick="goBack()">←</button>
+    <button class="topbar-back" id="btn-back">←</button>
     <div class="topbar-title">Responder</div>
   </div>
   <div class="content">
@@ -713,7 +713,7 @@
     <div class="predefined-list" id="answer-predefined-list"></div>
   </div>
   <div class="send-bar">
-    <button class="btn btn-primary" id="btn-send-answer" onclick="sendAnswer()">
+    <button class="btn btn-primary" id="btn-send-answer">
       Enviar respuesta →
     </button>
   </div>
@@ -725,8 +725,8 @@
     <h3>Editar respuesta</h3>
     <textarea id="modal-edit-text" rows="4" style="margin-bottom:0;"></textarea>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveEditedReply()">Guardar</button>
+      <button class="btn btn-secondary" id="btn-modal-cancel">Cancelar</button>
+      <button class="btn btn-primary" id="btn-modal-save">Guardar</button>
     </div>
   </div>
 </div>
@@ -1161,8 +1161,11 @@ function renderCatalog(items) {
         <div class="catalog-name">${escapeHtml(item.title || '')}</div>
         <div class="catalog-price">${price}</div>
       </div>
-      <button class="copy-btn" onclick="copyItemLink('${item.permalink}', this)">Copiar link</button>
+      <button class="copy-btn" data-permalink="${item.permalink || ''}">Copiar link</button>
     `;
+    div.querySelector('.copy-btn').addEventListener('click', function() {
+      copyItemLink(this.dataset.permalink, this);
+    });
     container.appendChild(div);
   });
 }
@@ -1224,10 +1227,16 @@ function renderPredefinedReplies() {
     div.innerHTML = `
       <div class="reply-item-text">${escapeHtml(reply)}</div>
       <div class="reply-item-actions">
-        <button class="btn-sm btn-edit" onclick="openEditReply(${index})">✏️ Editar</button>
-        <button class="btn-sm btn-delete" onclick="deleteReply(${index})">🗑️ Borrar</button>
+        <button class="btn-sm btn-edit" data-index="${index}">✏️ Editar</button>
+        <button class="btn-sm btn-delete" data-index="${index}">🗑️ Borrar</button>
       </div>
     `;
+    div.querySelector('.btn-edit').addEventListener('click', function() {
+      openEditReply(parseInt(this.dataset.index));
+    });
+    div.querySelector('.btn-delete').addEventListener('click', function() {
+      deleteReply(parseInt(this.dataset.index));
+    });
     container.appendChild(div);
   });
 }
@@ -1313,6 +1322,54 @@ function formatDate(dateStr) {
 document.getElementById('modal-edit').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
+
+// ═══════════════════════════════════════════════════════════════
+// EVENT LISTENERS (reemplazan los onclick inline)
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  const btnConnect = document.getElementById('btn-connect');
+  if (btnConnect) btnConnect.addEventListener('click', startOAuth);
+
+  const btnRefreshQ = document.getElementById('btn-refresh-questions');
+  if (btnRefreshQ) btnRefreshQ.addEventListener('click', loadQuestions);
+
+  const btnRefreshC = document.getElementById('btn-refresh-catalog');
+  if (btnRefreshC) btnRefreshC.addEventListener('click', loadCatalog);
+
+  const catalogSearch = document.getElementById('catalog-search');
+  if (catalogSearch) catalogSearch.addEventListener('input', filterCatalog);
+
+  const btnAddReply = document.getElementById('btn-add-reply');
+  if (btnAddReply) btnAddReply.addEventListener('click', addPredefinedReply);
+
+  const btnLogout = document.getElementById('btn-logout');
+  if (btnLogout) btnLogout.addEventListener('click', logout);
+
+  const navQ = document.getElementById('nav-questions');
+  if (navQ) navQ.addEventListener('click', () => switchTab('questions'));
+
+  const navC = document.getElementById('nav-catalog');
+  if (navC) navC.addEventListener('click', () => switchTab('catalog'));
+
+  const navR = document.getElementById('nav-replies');
+  if (navR) navR.addEventListener('click', () => switchTab('replies'));
+
+  const navCfg = document.getElementById('nav-config');
+  if (navCfg) navCfg.addEventListener('click', () => switchTab('config'));
+
+  const btnBack = document.getElementById('btn-back');
+  if (btnBack) btnBack.addEventListener('click', goBack);
+
+  const btnSend = document.getElementById('btn-send-answer');
+  if (btnSend) btnSend.addEventListener('click', sendAnswer);
+
+  const btnModalCancel = document.getElementById('btn-modal-cancel');
+  if (btnModalCancel) btnModalCancel.addEventListener('click', closeModal);
+
+  const btnModalSave = document.getElementById('btn-modal-save');
+  if (btnModalSave) btnModalSave.addEventListener('click', saveEditedReply);
+});
+
 </script>
 
 <!-- SERVICE WORKER para PWA -->
