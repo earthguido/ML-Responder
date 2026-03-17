@@ -591,7 +591,7 @@
   <div id="tab-questions" class="tab-content" style="display:flex; flex-direction:column; height:100vh;">
     <div class="topbar">
       <div class="topbar-title">Preguntas</div>
-      < class="topbar-badge" id="badge-count">0</>
+      <span class="topbar-badge" id="badge-count">0</span>
       <button class="topbar-icon-btn" id="btn-refresh-questions" title="Actualizar">↻</button>
     </div>
     <div class="content" id="questions-list">
@@ -610,7 +610,7 @@
     </div>
     <div class="content">
       <div class="search-bar">
-        < class="search-icon">🔍</>
+        <span class="search-icon">🔍</span>
         <input type="text" id="catalog-search" placeholder="Buscar publicación..."  />
       </div>
       <div id="catalog-list">
@@ -659,7 +659,7 @@
         <div class="config-section-title">Aplicación</div>
         <div class="config-row">
           <span class="config-row-label">Versión</span>
-          <span class="config-row-value">1.0.2</span>
+          <span class="config-row-value">1.0.0</span>
         </div>
       </div>
     </div>
@@ -986,7 +986,15 @@ async function loadQuestions() {
 
   try {
     const data = await mlGet(`/questions/search?seller_id=${state.userId}&status=UNANSWERED&sort_fields=date_created&sort_types=DESC`);
-    if (!data || !data.questions) {
+    if (!data) {
+      container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Error al cargar preguntas. Tocá ↻ para reintentar.</p></div>';
+      return;
+    }
+    if (data.error || data.status === 403) {
+      container.innerHTML = '<div class="empty-state"><div class="icon">🔒</div><p>Sin permisos para ver preguntas. Verificá la configuración en ML Developers.</p></div>';
+      return;
+    }
+    if (!data.questions) {
       container.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>No tenés preguntas pendientes</p></div>';
       document.getElementById('badge-count').textContent = '0';
       return;
@@ -1125,7 +1133,14 @@ async function loadCatalog() {
 
   try {
     const data = await mlGet(`/users/${state.userId}/items/search?status=active&limit=50`);
-    if (!data || !data.results || data.results.length === 0) {
+
+    // Si ML devuelve error de permisos, mostrar mensaje amigable
+    if (!data || data.error === 'forbidden' || data.status === 403 || data.message === 'forbidden') {
+      container.innerHTML = '<div class="empty-state"><div class="icon">🔒</div><p>El catálogo requiere permisos adicionales en ML Developers.<br><br>Las preguntas funcionan con normalidad.</p></div>';
+      return;
+    }
+
+    if (!data.results || data.results.length === 0) {
       container.innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>No tenés publicaciones activas</p></div>';
       return;
     }
