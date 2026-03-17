@@ -1109,7 +1109,7 @@ async function sendAnswer() {
       text: text,
     });
 
-    if (result && (result.id || result.status === 'ACTIVE')) {
+    if (result && (result.id || result.status === 'ACTIVE' || result.status === 'ANSWERED' || (result.answer && result.answer.status === 'ACTIVE'))) {
       showToast('¡Respuesta enviada! ✓');
       setTimeout(() => goBack(), 1000);
     } else {
