@@ -922,11 +922,10 @@ function switchTab(tab) {
 // ML API HELPERS
 // ═══════════════════════════════════════════════════════════════
 async function mlGet(endpoint) {
-  const res = await fetch('https://api.mercadolibre.com' + endpoint, {
+  const res = await fetch('/api/ml?endpoint=' + encodeURIComponent(endpoint), {
     headers: { Authorization: 'Bearer ' + state.accessToken },
   });
   if (res.status === 401) {
-    // Token expirado — intentar refresh
     const refreshed = await tryRefreshToken();
     if (refreshed) {
       return mlGet(endpoint);
@@ -939,7 +938,7 @@ async function mlGet(endpoint) {
 }
 
 async function mlPost(endpoint, body) {
-  const res = await fetch('https://api.mercadolibre.com' + endpoint, {
+  const res = await fetch('/api/ml?endpoint=' + encodeURIComponent(endpoint), {
     method: 'POST',
     headers: {
       Authorization: 'Bearer ' + state.accessToken,
