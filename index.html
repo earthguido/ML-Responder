@@ -659,7 +659,7 @@
         <div class="config-section-title">Aplicación</div>
         <div class="config-row">
           <span class="config-row-label">Versión</span>
-          <span class="config-row-value">1.0.0</span>
+          <span class="config-row-value">1.0.4</span>
         </div>
       </div>
     </div>
@@ -1386,12 +1386,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 
-<!-- SERVICE WORKER para PWA -->
+<!-- SERVICE WORKER: desregistrar cualquier versión anterior -->
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  });
+  navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
 }
 </script>
 
